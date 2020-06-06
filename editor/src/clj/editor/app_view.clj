@@ -1019,6 +1019,45 @@ If you do not specifically require different script states, consider changing th
   (first-where #(not (identical? current-tab-pane %))
                (.getItems editor-tabs-split)))
 
+(defn- scroll-tabs [app-view foo-table]
+  (let [fmap (fn [a tr] (when a (tr a)))
+        active-pane ^TabPane (g/node-value app-view :active-tab-pane)
+        selection (.getSelectionModel active-pane)
+        selected-id (.getSelectedIndex selection)
+        tabs (.getTabs active-pane)
+        tabs-size(if (nil? tabs) 0 (.size tabs))
+        tabs-split ^SplitPane (g/node-value app-view :editor-tabs-split)
+        other-pane (fmap tabs-split #(find-other-tab-pane % active-pane))
+        other-selection(fmap other-pane #(.getSelectionModel %))
+        checker-fn (:checker-fn foo-table)
+        normal-switch-fn (:normal-switch-fn foo-table)
+        overlap-switch-fn (:overlap-switch-fn foo-table)]
+    (when (and active-pane (not= 0 tabs-size))
+      (if (checker-fn selected-id tabs-size)
+        (normal-switch-fn selection)
+        (if (nil? other-pane)
+          (overlap-switch-fn selection)
+          (do
+            (.requestFocus other-pane)
+            (overlap-switch-fn other-selection)
+            ))))))
+​
+(handler/defhandler :toggle-to-next-tab :global
+  (enabled? [app-view evaluation-context]
+            (not-empty (get-active-tabs app-view evaluation-context)))
+  (run [app-view]
+       (scroll-tabs app-view {:checker-fn (fn [id size] (not= size (+ 1 id)))
+                              :normal-switch-fn #(.selectNext %)
+                              :overlap-switch-fn #(.selectFirst %)})))
+​
+(handler/defhandler :toggle-to-prev-tab :global
+  (enabled? [app-view evaluation-context]
+            (not-empty (get-active-tabs app-view evaluation-context)))
+  (run [app-view]
+       (scroll-tabs app-view {:checker-fn(fn [id _size] (not= 0 id))
+                              :normal-switch-fn #(.selectPrevious %)
+                              :overlap-switch-fn #(.selectLast %)})))
+
 (defn- add-other-tab-pane!
   ^TabPane [^SplitPane editor-tabs-split app-view]
   (let [tab-panes (.getItems editor-tabs-split)
