@@ -2003,6 +2003,7 @@ If you do not specifically require different script states, consider changing th
                       {:title "Error"
                        :icon :icon/triangle-error
                        :header message}))))))))))
+
 (defn- scroll-tabs [app-view foo-table]
   (let [fmap (fn [a tr] (when a (tr a)))
         active-pane ^TabPane (g/node-value app-view :active-tab-pane)
