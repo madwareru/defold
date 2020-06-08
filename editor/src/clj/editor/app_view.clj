@@ -2017,8 +2017,10 @@ If you do not specifically require different script states, consider changing th
         checker-fn (:checker-fn foo-table)
         normal-switch-fn (:normal-switch-fn foo-table)
         overlap-switch-fn (:overlap-switch-fn foo-table)
+        active-pane-has-tabs? (and active-pane (> 0 tabs-size))
+        only-one-tab-opened? (and (= tabs-size 1) (nil? other-pane))
        ]
-    (when (and active-pane (not= 0 tabs-size))
+    (when (and active-pane-has-tabs? (not only-one-tab-opened?))
       (if (checker-fn selected-id tabs-size)
         (normal-switch-fn selection)
         (if (nil? other-pane)
