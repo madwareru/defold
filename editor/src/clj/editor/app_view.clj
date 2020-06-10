@@ -2019,13 +2019,18 @@ If you do not specifically require different script states, consider changing th
         overlap-switch-fn (:overlap-switch-fn foo-table)
        ]
     (when (and active-pane (not= 0 tabs-size))
+      (println "switching tabs")
+      (println (.concat "selection-id: " (.toString selected-id)))
+      (println (.concat "tabs-size: " (.toString tabs-size)))
+      (println (if (checker-fn selected-id tabs-size) "normal switch" "overlap"))
       (if (checker-fn selected-id tabs-size)
-        (normal-switch-fn selection)
+        (do (println "I'm switching normally\n---") (normal-switch-fn selection))
         (if (nil? other-pane)
-          (overlap-switch-fn selection)
+          (do (println "I'm overlapping without swapping panes\n---")(overlap-switch-fn selection))
           (do
-            (.requestFocus other-pane)
-            (overlap-switch-fn other-selection)))))))
+            (println "I'm overlapping with swapping panes\n---")
+            (overlap-switch-fn other-selection)
+            (.requestFocus other-pane)))))))
 
 (handler/defhandler :toggle-to-next-tab :global
   (enabled? [app-view evaluation-context]
