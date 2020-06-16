@@ -2005,19 +2005,17 @@ If you do not specifically require different script states, consider changing th
                        :header message}))))))))))
 
 (defn- scroll-tabs [app-view foo-table]
-  (let [fmap (fn [a tr] (when a (tr a)))
-        active-pane ^TabPane (g/node-value app-view :active-tab-pane)
+  (let [active-pane ^TabPane (g/node-value app-view :active-tab-pane)
         selection (.getSelectionModel active-pane)
         selected-id (.getSelectedIndex selection)
         tabs (.getTabs active-pane)
         tabs-size(if (nil? tabs) 0 (.size tabs))
         tabs-split ^SplitPane (g/node-value app-view :editor-tabs-split)
-        other-pane (fmap tabs-split #(find-other-tab-pane % active-pane))
-        other-selection(fmap other-pane #(.getSelectionModel %))
+        other-pane (some-> tabs-split (find-other-tab-pane active-pane))
+        other-selection(some-> other-pane .getSelectionModel)
         checker-fn (:checker-fn foo-table)
         normal-switch-fn (:normal-switch-fn foo-table)
-        overlap-switch-fn (:overlap-switch-fn foo-table)
-       ]
+        overlap-switch-fn (:overlap-switch-fn foo-table)]
     (when (and active-pane (not= 0 tabs-size))
       (println "switching tabs")
       (println (.concat "selection-id: " (.toString selected-id)))
